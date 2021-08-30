@@ -17,8 +17,36 @@ exports.register = async (req, res, next) => {
 
 exports.login = async (req, res, next) => {
   try {
-    res.send("This is login route");
-  } catch (error) {}
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      res
+        .status(400)
+        .json({ success: false, error: "Please provide email and address" });
+      return;
+    }
+
+    const user = await User.findOne({ email }).select("+password");
+
+    if (!user) {
+      res.status(404).json({ success: false, error: "Invalid credentials" });
+      return;
+    }
+
+    const isMatchPassword = await user.matchPassword(password);
+
+    if (!isMatchPassword) {
+      res.status(404).json({ success: false, error: "Invalid credentials" });
+      return;
+    }
+
+    res.status(200).json({ success: true, token: "3jiosfeosej" });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
 };
 
 exports.forgotPassword = async (req, res, next) => {
