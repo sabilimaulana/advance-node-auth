@@ -7,7 +7,7 @@ exports.register = async (req, res, next) => {
 
     const user = await User.create({ username, email, password });
 
-    res.status(201).json({ success: true, user });
+    sendToken(user, 201, res);
   } catch (error) {
     next(error);
   }
@@ -33,7 +33,7 @@ exports.login = async (req, res, next) => {
       return next(new ErrorResponse("Invalid credentials", 401));
     }
 
-    res.status(200).json({ success: true, token: "3jiosfeosej" });
+    sendToken(user, 200, res);
   } catch (error) {
     next(error);
   }
@@ -41,6 +41,29 @@ exports.login = async (req, res, next) => {
 
 exports.forgotPassword = async (req, res, next) => {
   try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return next(new ErrorResponse("Email could not be sent", 404));
+    }
+
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save();
+
+    const resetUrl = `http://localhost:3000/password-reset/${resetToken}`;
+
+    const message = `
+      <h1>You've requested a password reset</h1>
+      <p>Please go to this link to reset your password.</p>
+      <a href=${resetUrl} clicktracking=off>${resetUrl}</a>
+    `;
+
+    try {
+    } catch (error) {}
+
     res.send("This is forgot password route");
   } catch (error) {}
 };
@@ -49,4 +72,10 @@ exports.resetPassword = async (req, res, next) => {
   try {
     res.send("This is reset password route");
   } catch (error) {}
+};
+
+const sendToken = (user, statusCode, res) => {
+  const token = user.getSignedToken();
+
+  res.status(statusCode).json({ success: true, token });
 };

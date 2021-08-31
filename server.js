@@ -12,10 +12,12 @@ connectDB();
 
 // Routes
 const authRoute = require("./routes/auth");
+const privateRoute = require("./routes/private");
 
 app.use(express.json());
 
 app.use("/api/v1/auth", authRoute);
+app.use("/api/v1/private", privateRoute);
 
 // Error Handler (Should be last piece of middleware)
 app.use(errorHandler);
